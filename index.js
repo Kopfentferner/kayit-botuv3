@@ -15,47 +15,44 @@ const KAYITLI_ROL = "1253327741063794771";
 const KAYITSIZ_ROL = "1253313874342711337";
 const KAYIT_KANAL = "1253302712431284306";
 
-// Bot hazır olduğunda
 client.once('ready', () => {
     console.log(`Bot aktif: ${client.user.tag}`);
 });
 
-// Sunucuya yeni biri katıldığında
 client.on('guildMemberAdd', member => {
     const kanal = member.guild.channels.cache.get(KAYIT_KANAL);
     if (kanal) {
-        kanal.send(`Hoşgeldin ${member}! Lütfen kayıt olmak için **!kayıt İsim | Steamİsmi #Yaş** komutunu kullan.`);
+        kanal.send(`Hoşgeldin ${member}! Lütfen kayıt olmak için **!kayıt İsim Nickname Yaş** komutunu kullan.`);
     }
 });
 
-// Mesajları dinleme
 client.on('messageCreate', async message => {
     if (message.author.bot) return;
-
-    // Sadece kayıt kanalında çalışsın
     if (message.channel.id !== KAYIT_KANAL) return;
 
     if (message.content.startsWith("!kayıt")) {
         const args = message.content.slice("!kayıt".length).trim();
 
         if (!args) {
-            return message.reply("Lütfen doğru formatta yazınız: !kayıt İsim | Steamİsmi #Yaş");
+            return message.reply("Lütfen doğru formatta yazınız: !kayıt İsim Nickname Yaş");
         }
 
         try {
             const member = message.member;
 
+            // Takma adı değiştirme
+            await member.setNickname(args);
+
             // Rol değişimi
             await member.roles.remove(KAYITSIZ_ROL);
             await member.roles.add(KAYITLI_ROL);
 
-            message.reply(`✅ Başarıyla kayıt oldunuz: ${args}`);
+            message.reply(`✅ Başarıyla kayıt oldunuz! Yeni adınız: **${args}**`);
         } catch (err) {
             console.error(err);
-            message.reply("❌ Kayıt sırasında bir hata oluştu.");
+            message.reply("❌ Kayıt sırasında bir hata oluştu. Botun rolü en üstte olmalı ki isim değiştirebilsin.");
         }
     }
 });
 
-// TOKEN render'dan gelecek
 client.login(process.env.TOKEN);
