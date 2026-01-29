@@ -1,0 +1,13 @@
+{
+  "name": "kayitbot",
+  "version": "1.0.0",
+  "description": "Discord kayıt botu",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.15.3",
+    "dotenv": "^16.4.5"
+  }
+}
