@@ -5,6 +5,7 @@ const {
   EmbedBuilder, ChannelType, PermissionsBitField
 } = require("discord.js");
 const fs = require("fs");
+const express = require("express"); // Express eklendi
 require("dotenv").config();
 
 const client = new Client({
@@ -98,36 +99,16 @@ client.on("messageCreate", async message => {
 
 // === Başvuru Sistemi ===
 client.on("interactionCreate", async (interaction) => {
-  // Buton tıklanınca form aç
   if (interaction.isButton()) {
     if (interaction.customId === "adminBasvuru" || interaction.customId === "vipBasvuru") {
       const modal = new ModalBuilder()
         .setCustomId("basvuruForm")
         .setTitle(interaction.customId === "adminBasvuru" ? "Admin Başvuru Formu" : "VIP Başvuru Formu");
 
-      const isim = new TextInputBuilder()
-        .setCustomId("isim")
-        .setLabel("İsim Soyisim")
-        .setStyle(TextInputStyle.Short)
-        .setRequired(true);
-
-      const yas = new TextInputBuilder()
-        .setCustomId("yas")
-        .setLabel("Yaş")
-        .setStyle(TextInputStyle.Short)
-        .setRequired(true);
-
-      const sure = new TextInputBuilder()
-        .setCustomId("sure")
-        .setLabel("Sunucuda geçirdiğiniz süre (!surem)")
-        .setStyle(TextInputStyle.Short)
-        .setRequired(true);
-
-      const steam = new TextInputBuilder()
-        .setCustomId("steam")
-        .setLabel("Steam Profil Linki")
-        .setStyle(TextInputStyle.Short)
-        .setRequired(true);
+      const isim = new TextInputBuilder().setCustomId("isim").setLabel("İsim Soyisim").setStyle(TextInputStyle.Short).setRequired(true);
+      const yas = new TextInputBuilder().setCustomId("yas").setLabel("Yaş").setStyle(TextInputStyle.Short).setRequired(true);
+      const sure = new TextInputBuilder().setCustomId("sure").setLabel("Sunucuda geçirdiğiniz süre (!surem)").setStyle(TextInputStyle.Short).setRequired(true);
+      const steam = new TextInputBuilder().setCustomId("steam").setLabel("Steam Profil Linki").setStyle(TextInputStyle.Short).setRequired(true);
 
       modal.addComponents(
         new ActionRowBuilder().addComponents(isim),
@@ -140,7 +121,6 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
 
-  // Form gönderildiğinde
   if (interaction.isModalSubmit() && interaction.customId === "basvuruForm") {
     const isim = interaction.fields.getTextInputValue("isim");
     const yas = interaction.fields.getTextInputValue("yas");
@@ -157,10 +137,7 @@ client.on("interactionCreate", async (interaction) => {
       permissionOverwrites: [
         { id: guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
         { id: interaction.user.id, allow: [PermissionsBitField.Flags.ViewChannel] },
-        ...YETKILI_IDS.map(id => ({
-          id,
-          allow: [PermissionsBitField.Flags.ViewChannel]
-        }))
+        ...YETKILI_IDS.map(id => ({ id, allow: [PermissionsBitField.Flags.ViewChannel] }))
       ]
     });
 
@@ -176,17 +153,13 @@ client.on("interactionCreate", async (interaction) => {
       .setFooter({ text: `Başvuru sahibi: ${interaction.user.tag}` });
 
     const kapatRow = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId("ticketKapat")
-        .setLabel("Ticket Kapat")
-        .setStyle(ButtonStyle.Danger)
+      new ButtonBuilder().setCustomId("ticketKapat").setLabel("Ticket Kapat").setStyle(ButtonStyle.Danger)
     );
 
     await basvuruKanal.send({ embeds: [embed], components: [kapatRow] });
     await interaction.reply({ content: `Başvurunuz oluşturuldu: ${basvuruKanal}`, ephemeral: true });
   }
 
-  // Ticket kapatma
   if (interaction.isButton() && interaction.customId === "ticketKapat") {
     if (!YETKILI_IDS.includes(interaction.user.id)) {
       return interaction.reply({ content: "Bu işlemi sadece yetkililer yapabilir.", ephemeral: true });
@@ -208,6 +181,18 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.reply({ content: "Ticket kapatılıyor...", ephemeral: true });
     setTimeout(() => channel.delete(), 2000);
   }
+});
+
+// === Express Server (Uptime Robot için) ===
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get("/", (req, res) => {
+  res.send("Bot çalışıyor!");
+});
+
+app.listen(PORT, () => {
+  console.log(`Web server ${PORT} portunda çalışıyor`);
 });
 
 client.login(process.env.TOKEN);
