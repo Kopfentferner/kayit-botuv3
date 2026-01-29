@@ -4,7 +4,7 @@
   "description": "Discord kayıt botu",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js & node server.js"
+    "start": "node index.js"
   },
   "dependencies": {
     "discord.js": "^14.15.3",
